@@ -10,18 +10,22 @@ final class MyDB extends mysqli {
      *
      * @access private
      * @static
+     * @var array
      */
-    private static $_INSTANCE;
+    private static $_INSTANCE = array();
 
     /**
      * $_prefix is the prefix of data tables
      *
      * @access private
+     * @var string
      */
     private $_prefix;
 
     /**
      * The input parameter place holder in SQL
+     *
+     * @var constant
      */
     const PLACE_HOLDER = '?';
 
@@ -33,40 +37,12 @@ final class MyDB extends mysqli {
      * @param string $db_user User for connecting MySQL server
      * @param string $db_passwd User password
      * @param string $db_database The database to be used
+     * @param string $tbl_prefix The prefix of data tables
      */
-    private function __construct($db_host, $db_user, $db_passwd, $db_database) {
+    private function __construct($db_host, $db_user, $db_passwd, $db_database, $tbl_prefix) {
         parent::__construct($db_host, $db_user, $db_passwd, $db_database);
-    } // MyDB::__construct($db_host, $db_user, $db_passwd, $db_database)
-
-    /**
-     * Check and load the singleton'ed MySQLi connection object for the given instance name
-     *
-     * @access private
-     * @static
-     * @param string $instance_name The name of MySQLi connection instance
-     */
-    private static function _singleton($instance_name) {
-        if ($instance_name == '_default') {
-            $instance_name = self::_get_default_instance_name();
-            if (!$instance_name) {
-                return;
-            }
-        }
-        $instance_config =& self::_get_instance_config($instance_name);
-        if (!$instance_config) {
-            return;
-        }
-        if (!isset(self::$_INSTANCE[$instance_name]) ||
-            !is_object(self::$_INSTANCE[$instance_name])) {
-            $me = __CLASS__;
-            self::$_INSTANCE[$instance_name] = new $me($instance_config['host'],
-                                                       $instance_config['user'],
-                                                       $instance_config['passwd'],
-                                                       $instance_config['database']);
-            self::$_INSTANCE[$instance_name]->prefix = $instance_config['prefix'];
-            self::$_INSTANCE[$instance_name]->set_charset($instance_config['charset']);
-        }
-    } // MyDB::_singleton($instance_name)
+        $this->_prefix = $tbl_prefix;
+    } // MyDB::__construct($db_host, $db_user, $db_passwd, $db_database, $tbl_prefix)
 
     /**
      * Get the instance name of MySQLi connection which is marked as the default one
@@ -122,7 +98,26 @@ final class MyDB extends mysqli {
      * @return reference The reference of the established MySQLi connection object
      */
     public static function &get_instance($instance_name = '_default') {
-        self::_singleton($instance_name);
+        if ($instance_name == '_default') {
+            $instance_name = self::_get_default_instance_name();
+            if (!$instance_name) {
+                return false;
+            }
+        }
+        $instance_config =& self::_get_instance_config($instance_name);
+        if (!$instance_config) {
+            return false;
+        }
+        if (!isset(self::$_INSTANCE[$instance_name]) ||
+            !is_object(self::$_INSTANCE[$instance_name])) {
+            $me = __CLASS__;
+            self::$_INSTANCE[$instance_name] = new $me($instance_config['host'],
+                                                       $instance_config['user'],
+                                                       $instance_config['passwd'],
+                                                       $instance_config['database'],
+                                                       $instance_config['prefix']);
+            self::$_INSTANCE[$instance_name]->set_charset($instance_config['charset']);
+        }
         return self::$_INSTANCE[$instance_name];
     } // & MyDB::get_instance($instance_name = '_default')
 
@@ -176,7 +171,12 @@ final class MyDB extends mysqli {
      * @return mix Query or update result
      */
     public function exec_query($sql, $params = array(), $quote_mask = '') {
-        $good_sql = $this->_make_sql($sql, $params, $quote_mask);
+        if (sizeof($params) == 0) {
+            $good_sql = $sql;
+        } else {
+            $good_sql = $this->_make_sql($sql, $params, $quote_mask);
+        }
+
         if (!$good_sql) {
             return false;
         }
@@ -186,7 +186,7 @@ final class MyDB extends mysqli {
 
     /**
      * Get the prefix of data tables
-     * 
+     *
      * @access public
      * @return string The prefix of data tables
      */

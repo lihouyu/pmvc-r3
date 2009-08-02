@@ -1,6 +1,9 @@
 <?php
 if (!defined('PMVCR3')) die('Access violation error!');
 
+/**
+ * Database configurations
+ */
 $db_configs = array(
     'conn1' => array(
         'host'      => 'localhost',     // MySQL server hostname
@@ -24,3 +27,11 @@ $db_configs = array(
     )
  */
 ); // $db_configs
+
+/**
+ * System configurations
+ * Can be overrided by parameters loaded from database
+ */
+$sys_configs = array(
+    'enable_table_cache'    => false
+); // $sys_configs
