@@ -24,18 +24,18 @@ class ActiveObject {
     /**
      * Data table name represented in database
      *
-     * @access protected
+     * @access public
      * @var string
      */
-    protected $table_name = false;
+    public $table_name = false;
 
     /**
      * Record table object
      *
-     * @access protected
+     * @access public
      * @var object
      */
-    protected $table_object = false;
+    public $table_object = false;
 
     /**
      * Indicate whether this object is new created
@@ -76,6 +76,54 @@ class ActiveObject {
      * @var array
      */
     protected $no_validate = array();
+
+    /**
+     * 1 -> 1 children relation objects
+     *
+     * @access public
+     * @var array
+     */
+    public $has_one = array();
+
+    /**
+     * 1 -> many children relation objects
+     *
+     * @access public
+     * @var array
+     */
+    public $has_many = array();
+
+    /**
+     * 1 -> 1 parent relation objects
+     *
+     * @access public
+     * @var array
+     */
+    public $belong_to = array();
+
+    /**
+     * 1 -> many parent relation objects
+     *
+     * @access public
+     * @var array
+     */
+    public $belong_to_many = array();
+
+    /**
+     * Array for holding parent objects
+     *
+     * @access public
+     * @var array
+     */
+    public $parents = array();
+
+    /**
+     * Array for holding children objects
+     *
+     * @access public
+     * @var array
+     */
+    public $children = array();
 
     /**
      * Error message holder
@@ -368,6 +416,148 @@ class ActiveObject {
             }
         }
     } // ActiveObject->delete()
+
+    /**
+     * Load related objects
+     *
+     * @access public
+     * @param array $target_objs Only load objects defined in this array
+     */
+    public function load_children($target_objs = array()) {
+        /* the has_one relation */
+        if (sizeof($this->has_one) >= 1) {
+            foreach ($this->has_one as $class_name) {
+                if (!empty($target_objs) &&
+                    !in_array($class_name, $target_objs)) {
+                    continue;
+                }
+                $object = new $class_name();
+                if (in_array($this->class_name, $object->belong_to)) {
+                    $t_class_name = transform_class_name($this->class_name);
+                    $ai_attr_name = $this->table_object->aikey;
+                    $this->children[$class_name] =
+                        ActiveObject::find($class_name, "{$t_class_name}_id=?",
+                        array($this->$ai_attr_name));
+                } else {
+                    $this->errmsg = 'Broken relation: '.$this->class_name
+                        .' has_one '.$class_name.'!'."\n";
+                }
+                unset($object);
+            }
+        }
+
+        /* the has_many relation */
+        if (sizeof($this->has_many) >= 1) {
+            foreach ($this->has_many as $class_name) {
+                if (!empty($target_objs) &&
+                    !in_array($class_name, $target_objs)) {
+                    continue;
+                }
+                $object = new $class_name();
+                if (in_array($this->class_name, $object->belong_to)) {
+                    $t_class_name = transform_class_name($this->class_name);
+                    $ai_attr_name = $this->table_object->aikey;
+                    $this->children[$class_name] =
+                        ActiveObject::find_all($class_name, "{$t_class_name}_id=?",
+                        array($this->$ai_attr_name));
+                } else if (in_array($this->class_name, $object->belong_to_many)) {
+                        $t_class_name = transform_class_name($this->class_name);
+                        $t_class_name_s = transform_class_name($class_name);
+                        $ai_attr_name = $this->table_object->aikey;
+                        $ai_attr_name_s = $object->table_object->aikey;
+                        $table_name_s = $object->table_name;
+                        $table_name_r = $t_class_name.'_'.$t_class_name_s;
+                        $id_r = $t_class_name.'_id';
+                        $id_r_s = $t_class_name_s.'_id';
+                        $sql = "SELECT `$table_name_s`.* FROM `$table_name_s`, "
+                            ."`$table_name_r` WHERE "
+                            ."`$table_name_s`.`$ai_attr_name_s`=`$table_name_r`.`$id_r_s` "
+                            ."AND `$table_name_r`.`$id_r`=?";
+
+                        $rs = $this->mydb->exec_query($sql, array($this->$ai_attr_name));
+                        if (!$rs) continue;
+                        $this->children[$class_name] = array();
+                        while ($row = $rs->fetch_object($class_name, array(false, false))) {
+                            $this->children[$class_name][] = $row;
+                        }
+                        $rs->free();
+                    } else {
+                        $this->errmsg = 'Broken relation: '.$this->class_name
+                            .' has_many '.$class_name.'!'."\n";
+                    }
+                unset($object);
+            }
+        }
+    } // ActiveObject->load_children($target_objs = array())
+
+    /**
+     * Load related objects
+     *
+     * @access public
+     * @param array $target_objs Only load objects defined in this array
+     */
+    public function load_parents($target_objs = array()) {
+        /* the belong_to relation */
+        if (sizeof($this->belong_to) >= 1) {
+            foreach ($this->belong_to as $class_name) {
+                if (!empty($target_objs) &&
+                    !in_array($class_name, $target_objs)) {
+                    continue;
+                }
+                $object = new $class_name();
+                if (in_array($this->class_name, $object->has_one) ||
+                    in_array($this->class_name, $object->has_many)) {
+                        $t_class_name_m = transform_class_name($class_name);
+                        $id_r_m = $t_class_name_m.'_id';
+                        $ai_attr_name_m = $object->table_object->aikey;
+                        $this->parents[$class_name] =
+                            ActiveObject::find("$ai_attr_name_m=?",
+                            array($this->$id_r_m));
+                    } else {
+                        $this->errmsg = 'Broken relation: '.$this->class_name
+                            .' belong_to '.$class_name.'!'."\n";
+                    }
+                unset($object);
+            }
+        }
+
+        /* the belong_to_many relation */
+        if (sizeof($this->belong_to_many) >= 1) {
+            foreach ($this->belong_to_many as $class_name) {
+                if (!empty($target_objs) &&
+                    !in_array($class_name, $target_objs)) {
+                    continue;
+                }
+                $object = new $class_name();
+                if (in_array($this->class_name, $object->has_many)) {
+                    $t_class_name = transform_class_name($this->class_name);
+                    $t_class_name_m = transform_class_name($class_name);
+                    $ai_attr_name = $this->table_object->aikey;
+                    $ai_attr_name_m = $object->table_object->aikey;
+                    $table_name_m = $object->table_name;
+                    $table_name_r = $t_class_name_m.'_'.$t_class_name;
+                    $id_r = $t_class_name.'_id';
+                    $id_r_m = $t_class_name_m.'_id';
+                    $sql = "SELECT `$table_name_m`.* FROM `$table_name_m`, "
+                        ."`$table_name_r` WHERE "
+                        ."`$table_name_m`.`$ai_attr_name_m`=`$table_name_r`.`$id_r_m` "
+                        ."AND `$table_name_r`.`$id_r`=?";
+
+                    $rs = $this->mydb->exec_query($sql, array($this->$ai_attr_name));
+                    if (!$rs) continue;
+                    $this->parents[$class_name] = array();
+                    while ($row = $rs->fetch_object($class_name, array(false, false))) {
+                        $this->parents[$class_name][] = $row;
+                    }
+                    $rs->free();
+                } else {
+                    $this->errmsg = 'Broken relation: '.$this->class_name
+                        .' belong_to_many '.$class_name.'!'."\n";
+                }
+                unset($object);
+            }
+        }
+    } // ActiveObject->load_parents($target_objs = array())
 
     /* Static data accessor */
     /**
