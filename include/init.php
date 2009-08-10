@@ -47,6 +47,7 @@ function __autoload($class_name) {
 	    }
 	}
 }
+// Class autoloader
 
 /**
  * Load database parameters
@@ -59,3 +60,28 @@ if ($parameters && sizeof($parameters) > 0) {
 		$sys_configs[$parameter->param_key] = $param_val;
 	}
 }
+// Load database parameters
+
+/**
+ * We do not need magic quotes.
+ * If it's turned on, then strip these slashes.
+ */
+function stripslashes_deep($var) {
+    $var = is_array($var)?
+        array_map('stripslashes_deep', $var):
+        stripslashes($var);
+    return $var;
+}
+
+if (get_magic_quotes_gpc()) {
+    if (isset($_GET) && !empty($_GET)) {
+        $_GET = stripslashes_deep($_GET);
+    }
+    if (isset($_POST) && !empty($_POST)) {
+        $_POST = stripslashes_deep($_POST);
+    }
+    if (isset($_COOKIE) && !empty($_COOKIE)) {
+        $_COOKIE = stripslashes_deep($_COOKIE);
+    }
+}
+// Strip slashes
