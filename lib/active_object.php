@@ -141,10 +141,11 @@ class ActiveObject {
      */
     public function __construct($aikey_val = false, $stat_new = true) {
         $sys_configs =& $GLOBALS['sys_configs'];
+        $table_cache_dir = $sys_configs['table_cache_dir'];
         $this->class_name = get_class($this);
 
         /* Get default MySQLi connection instance */
-        $this->mydb =& MyDB::get_instance();
+        $this->mydb =& MyDb::get_instance();
         if (!$this->mydb) return false;
         $this->prefix = $this->mydb->get_prefix();
 
@@ -155,7 +156,7 @@ class ActiveObject {
 
         /* Load table info */
         //$this->table_object =& $this->_getRecordTable($this->_table_name);
-        $table_object_cache_file = TABLE_CACHE_DIR.DS.$this->table_name.'.cache';
+        $table_object_cache_file = $table_cache_dir.DS.$this->table_name.'.cache';
         if ($sys_configs['enable_table_cache']) {
             if (file_exists($table_object_cache_file)) {
                 $table_object_cache = file_get_contents($table_object_cache_file);
@@ -602,7 +603,7 @@ class ActiveObject {
      * @return object
      */
     final public static function find($class_name, $where = false, $params = array(), $more_sql = false) {
-        if (!self::$_mydb) self::$_mydb = MyDB::get_instance();
+        if (!self::$_mydb) self::$_mydb = MyDb::get_instance();
         if (!self::$_prefix) self::$_prefix = self::$_mydb->get_prefix();
 
         $table_name = self::_get_table_name($class_name);
@@ -638,7 +639,7 @@ class ActiveObject {
      * @return array
      */
     final public static function find_all($class_name, $where = false, $params = array(), $more_sql = false) {
-        if (!self::$_mydb) self::$_mydb = MyDB::get_instance();
+        if (!self::$_mydb) self::$_mydb = MyDb::get_instance();
         if (!self::$_prefix) self::$_prefix = self::$_mydb->get_prefix();
 
         $objects = array();
@@ -676,7 +677,7 @@ class ActiveObject {
      * @return int
      */
     final public static function count($class_name, $where = false, $params = array()) {
-        if (!self::$_mydb) self::$_mydb = MyDB::get_instance();
+        if (!self::$_mydb) self::$_mydb = MyDb::get_instance();
         if (!self::$_prefix) self::$_prefix = self::$_mydb->get_prefix();
 
         $table_name = self::_get_table_name($class_name);

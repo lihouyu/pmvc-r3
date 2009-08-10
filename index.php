@@ -1,14 +1,11 @@
 <?php
-define('KARAVIDEO', 1);
+define('PMVCR3', 1);
 
-include_once('secret.php');
+define('DS', DIRECTORY_SEPARATOR);
+define('ROOT', dirname(__FILE__));
 
-include_once('lib/my_db.php');
-include_once('lib/active_object.php');
+include_once(ROOT.DS.'include'.DS.'init.php');
 
-include_once('include/video_category.php');
-include_once('include/video.php');
-include_once('include/video_comment.php');
+print_r($sys_configs);
 
-$db =& MyDB::get_instance();
-$db->close();
+MyDb::close_all();

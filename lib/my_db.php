@@ -4,7 +4,7 @@ if (!defined('PMVCR3')) die('Access violation error!');
 /**
  * Inherited MySQL connection object, provides singleton object.
  */
-final class MyDB extends mysqli {
+final class MyDb extends mysqli {
     /**
      * $_INSTANCE holds the singleton object
      *
@@ -42,7 +42,7 @@ final class MyDB extends mysqli {
     private function __construct($db_host, $db_user, $db_passwd, $db_database, $tbl_prefix) {
         parent::__construct($db_host, $db_user, $db_passwd, $db_database);
         $this->_prefix = $tbl_prefix;
-    } // MyDB::__construct($db_host, $db_user, $db_passwd, $db_database, $tbl_prefix)
+    } // MyDb::__construct($db_host, $db_user, $db_passwd, $db_database, $tbl_prefix)
 
     /**
      * Get the instance name of MySQLi connection which is marked as the default one
@@ -70,7 +70,7 @@ final class MyDB extends mysqli {
         }
 
         return $default_instance_name;
-    } // MyDB::_get_default_instance_name()
+    } // MyDb::_get_default_instance_name()
 
     /**
      * The the configuration of the given instance name
@@ -87,7 +87,7 @@ final class MyDB extends mysqli {
 
         $instance_config = $global_db_configs[$instance_name];
         return $instance_config;
-    } // & MyDB::_get_instance_config($instance_name)
+    } // & MyDb::_get_instance_config($instance_name)
 
     /**
      * Return the reference of the singleton'ed object instance
@@ -119,7 +119,21 @@ final class MyDB extends mysqli {
             self::$_INSTANCE[$instance_name]->set_charset($instance_config['charset']);
         }
         return self::$_INSTANCE[$instance_name];
-    } // & MyDB::get_instance($instance_name = '_default')
+    } // & MyDb::get_instance($instance_name = '_default')
+
+    /**
+     * Close all MySQLi database connection instance
+     *
+     * @access public
+     * @static
+     */
+    public static function close_all() {
+        if (sizeof(self::$_INSTANCE) > 0) {
+            foreach(self::$_INSTANCE as $instance) {
+                @$instance->close();
+            }
+        }
+    } // MyDb::close_all()
 
     /**
      * Replace place holder in sql with escaped parameters
@@ -159,7 +173,7 @@ final class MyDB extends mysqli {
         }
 
         return $full_sql;
-    } // MyDB->_make_sql($sql, $params = array(), $quote_mask = '')
+    } // MyDb->_make_sql($sql, $params = array(), $quote_mask = '')
 
     /**
      * The query method according to mysqli::query
@@ -182,7 +196,7 @@ final class MyDB extends mysqli {
         }
 
         return parent::query($good_sql);
-    } // MyDB->exec_query($sql, $params = array(), $quote_mask = '')
+    } // MyDb->exec_query($sql, $params = array(), $quote_mask = '')
 
     /**
      * Get the prefix of data tables
@@ -192,5 +206,5 @@ final class MyDB extends mysqli {
      */
     public function get_prefix() {
         return $this->_prefix;
-    } // MyDB->get_prefix()
-} // MyDB
+    } // MyDb->get_prefix()
+} // MyDb
