@@ -691,5 +691,29 @@ class ActiveObject {
         $rs->free();
         return $row[0];
     } // ActiveObject::count($class_name, $where = false, $params = array())
+
+    final public static function paginate($class_name, $where = false,
+        $params = array(), $more_sql = false, $page_param = 'p') {
+        $result = array();
+
+        $record_num = self::count($class_name, $where, $params);
+        if ($record_num > 0) {
+            $curr_page =& ParamHolder::get($page_param, 1);
+            $result['pager'] =& self::_genPagerLinks($curr_page, $obj_cnt, $page_param);
+
+            $start_index = intval(PAGE_SIZE) * ($curr_page - 1);
+            if ($more_sql == false) {
+                $more_sql = '';
+            }
+            $more_sql .= " LIMIT ".$start_index.", ".PAGE_SIZE;
+            $result['data'] =& $obj->findAll($where, $params, $more_sql);
+        }
+
+        if (sizeof($result) > 0) {
+            return $result;
+        } else {
+            return false;
+        }
+    }
     // Static data accessor
 }
