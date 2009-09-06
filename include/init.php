@@ -10,7 +10,14 @@ $sys_paths = array(
     'tpl' => ROOT.DS.'templates'
 );
 
-include_once(ROOT.DS.'config.php');
+/**
+ * Initialize session
+ */
+if (intval(ini_get('session.auto_start')) == 0) {
+	session_start();
+}
+define('MYHOST', $_SERVER['SERVER_NAME']);
+// Initialize session
 
 include_once($sys_paths['inc'].DS.'utils.php');
 

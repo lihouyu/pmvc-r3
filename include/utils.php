@@ -150,3 +150,70 @@ function v_is_email($var) {
 function v_custom_match($regexp, $var) {
     return preg_match($regexp, $var);
 } // v_custom_match($regexp, $var)
+
+/**
+ * Variable holder functions
+ */
+if (!isset($_SESSION[MYHOST]) || !is_array($_SESSION[MYHOST])) {
+    $_SESSION[MYHOST] = array();
+}
+if (!isset($_SESSION[MYHOST]['_$M']) || !is_array($_SESSION[MYHOST]['_$M'])) {
+    $_SESSION[MYHOST]['_$M'] = array();
+}
+
+/**
+ * Get HTTP or manually set variables
+ *
+ * @param string $var_name The name of the requesting parameter
+ * @param string $scope The context of the requesting parameter. One of following characters or combine of them.
+ *          'A': All context
+ *          'G': $_GET
+ *          'P': $_POST
+ *          'C': $_COOKIE
+ *          'F': $_FILE
+ *          'S': $_SESSION
+ *          'M': Manuals
+ * @param mixed $default If the requesting parameter is not set or empty, this value is returned
+ * @return mixed
+ */
+function get_var($var_name, $scope = 'A', $default = false) {
+    if (!$scope) $scope = 'A';
+    if ($scope == 'A') $scope = 'SGPCFM';
+
+    $return_var = $default;
+
+    for ($i = 0; $i < strlen($scope); $i++) {
+        switch ($scope[$i]) {
+            case 'S':
+                break;
+            case 'G':
+                break;
+            case 'P':
+                break;
+            case 'C':
+                break;
+            case 'F':
+                break;
+            case 'M':
+                break;
+        }
+    }
+
+    return $return_var;
+} // get_var($var_name, $scope = 'A', $default = false)
+
+/**
+ * Set manual variables
+ */
+function set_var($var_name, $var_val) {
+    $_SESSION[MYHOST]['_$M'][$var_name] = $var_val;
+} // set_var($var_name, $var_val)
+
+/**
+ * Set session variables
+ */
+function set_session($var_name, $var_val) {
+    $_SESSION[MYHOST][$var_name] = $var_val;
+} // set_session($var_name, $var_val)
+
+// Variable holder functions
