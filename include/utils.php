@@ -164,8 +164,8 @@ if (!isset($_SESSION[MYHOST]['_$M']) || !is_array($_SESSION[MYHOST]['_$M'])) {
 /**
  * Get HTTP or manually set variables
  *
- * @param string $var_name The name of the requesting parameter
- * @param string $scope The context of the requesting parameter. One of following characters or combine of them.
+ * @param string $var_name The name of the requesting variable
+ * @param string $scope The context of the requesting variable. One of following characters or combine of them.
  *          'A': All context
  *          'G': $_GET
  *          'P': $_POST
@@ -173,7 +173,7 @@ if (!isset($_SESSION[MYHOST]['_$M']) || !is_array($_SESSION[MYHOST]['_$M'])) {
  *          'F': $_FILE
  *          'S': $_SESSION
  *          'M': Manuals
- * @param mixed $default If the requesting parameter is not set or empty, this value is returned
+ * @param mixed $default If the requesting variable is not set or empty, this value is returned
  * @return mixed
  */
 function get_var($var_name, $scope = 'A', $default = false) {
@@ -181,80 +181,27 @@ function get_var($var_name, $scope = 'A', $default = false) {
     if ($scope == 'A') $scope = 'SGPCFM';
 
     $return_var = $default;
+    $raw_var = '';
 
     for ($i = 0; $i < strlen($scope); $i++) {
         if ($scope[$i] == 'S') {
-            if (isset($_SESSION[MYHOST][$var_name])) {
-                if (is_bool($_SESSION[MYHOST][$var_name])) {
-                    $return_var = $_SESSION[MYHOST][$var_name];
-                    break;
-                } else {
-                    if (strlen(trim(strval($_SESSION[MYHOST][$var_name]))) > 0) {
-                        $return_var = $_SESSION[MYHOST][$var_name];
-                        break;
-                    }
-                }
-            }
+            $raw_var = _get_var($_SESSION[MYHOST], $var_name);
         } else if ($scope[$i] == 'G') {
-            if (isset($_GET[$var_name])) {
-                if (is_bool($_GET[$var_name])) {
-                    $return_var = $_GET[$var_name];
-                    break;
-                } else {
-                    if (strlen(trim(strval($_GET[$var_name]))) > 0) {
-                        $return_var = $_GET[$var_name];
-                        break;
-                    }
-                }
-            }
+            $raw_var = _get_var($_GET, $var_name);
         } else if ($scope[$i] == 'P') {
-            if (isset($_POST[$var_name])) {
-                if (is_bool($_POST[$var_name])) {
-                    $return_var = $_POST[$var_name];
-                    break;
-                } else {
-                    if (strlen(trim(strval($_POST[$var_name]))) > 0) {
-                        $return_var = $_POST[$var_name];
-                        break;
-                    }
-                }
-            }
+            $raw_var = _get_var($_POST, $var_name);
         } else if ($scope[$i] == 'C') {
-            if (isset($_COOKIE[$var_name])) {
-                if (is_bool($_COOKIE[$var_name])) {
-                    $return_var = $_COOKIE[$var_name];
-                    break;
-                } else {
-                    if (strlen(trim(strval($_COOKIE[$var_name]))) > 0) {
-                        $return_var = $_COOKIE[$var_name];
-                        break;
-                    }
-                }
-            }
+            $raw_var = _get_var($_COOKIE, $var_name);
         } else if ($scope[$i] == 'F') {
-            if (isset($_FILE[$var_name])) {
-                if (is_bool($_FILE[$var_name])) {
-                    $return_var = $_FILE[$var_name];
-                    break;
-                } else {
-                    if (strlen(trim(strval($_FILE[$var_name]))) > 0) {
-                        $return_var = $_FILE[$var_name];
-                        break;
-                    }
-                }
-            }
+            $raw_var = _get_var($_FILE, $var_name);
         } else if ($scope[$i] == 'M') {
-            if (isset($_SESSION[MYHOST]['_$M'][$var_name])) {
-                if (is_bool($_SESSION[MYHOST]['_$M'][$var_name])) {
-                    $return_var = $_SESSION[MYHOST]['_$M'][$var_name];
-                    break;
-                } else {
-                    if (strlen(trim(strval($_SESSION[MYHOST]['_$M'][$var_name]))) > 0) {
-                        $return_var = $_SESSION[MYHOST]['_$M'][$var_name];
-                        break;
-                    }
-                }
-            }
+            $raw_var = _get_var($_SESSION[MYHOST]['_$M'], $var_name);
+        }
+        if (is_string($raw_var) && strlen(trim($raw_var)) == 0) {
+            // Just for simplify the logic
+        } else {
+            $return_var = $raw_var;
+            break;
         }
     }
 
@@ -262,7 +209,27 @@ function get_var($var_name, $scope = 'A', $default = false) {
 } // get_var($var_name, $scope = 'A', $default = false)
 
 /**
+ * This function should never be called directly
+ */
+function _get_var(&$container, $var_name) {
+    $return_var = '';
+    if (isset($container[$var_name])) {
+        if (is_bool($container[$var_name])) {
+            $return_var = $container[$var_name];
+        } else {
+            if (strlen(trim(strval($container[$var_name]))) > 0) {
+                $return_var = $container[$var_name];
+            }
+        }
+    }
+    return $return_var;
+} // _get_var(&$container, $var_name)
+
+/**
  * Set manual variables
+ *
+ * @param string $var_name The name of the new variable
+ * @param string $val_val The name of the new variable
  */
 function set_var($var_name, $var_val) {
     $_SESSION[MYHOST]['_$M'][$var_name] = $var_val;
@@ -270,6 +237,9 @@ function set_var($var_name, $var_val) {
 
 /**
  * Set session variables
+ *
+ * @param string $var_name The name of the new variable
+ * @param string $val_val The name of the new variable
  */
 function set_session($var_name, $var_val) {
     $_SESSION[MYHOST][$var_name] = $var_val;

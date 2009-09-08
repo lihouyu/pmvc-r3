@@ -698,15 +698,15 @@ class ActiveObject {
 
         $record_num = self::count($class_name, $where, $params);
         if ($record_num > 0) {
-            $curr_page =& ParamHolder::get($page_param, 1);
-            $result['pager'] =& self::_genPagerLinks($curr_page, $obj_cnt, $page_param);
+            $curr_page = get_var($page_param, false, 1);
+            $result['pager'] =& self::_gen_pager_links($curr_page, $obj_cnt, $page_param);
 
             $start_index = intval(PAGE_SIZE) * ($curr_page - 1);
             if ($more_sql == false) {
                 $more_sql = '';
             }
             $more_sql .= " LIMIT ".$start_index.", ".PAGE_SIZE;
-            $result['data'] =& $obj->findAll($where, $params, $more_sql);
+            $result['data'] = ActiveObject::find_all($class_name, $where, $params, $more_sql);
         }
 
         if (sizeof($result) > 0) {

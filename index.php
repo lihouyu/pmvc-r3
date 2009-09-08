@@ -8,4 +8,6 @@ include_once(ROOT.DS.'config.php');
 
 include_once(ROOT.DS.'include'.DS.'init.php');
 
+echo 'Hello, '.get_var('name', false, 'HouYu Li');
+
 MyDb::close_all();
