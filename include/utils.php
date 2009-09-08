@@ -183,19 +183,78 @@ function get_var($var_name, $scope = 'A', $default = false) {
     $return_var = $default;
 
     for ($i = 0; $i < strlen($scope); $i++) {
-        switch ($scope[$i]) {
-            case 'S':
-                break;
-            case 'G':
-                break;
-            case 'P':
-                break;
-            case 'C':
-                break;
-            case 'F':
-                break;
-            case 'M':
-                break;
+        if ($scope[$i] == 'S') {
+            if (isset($_SESSION[MYHOST][$var_name])) {
+                if (is_bool($_SESSION[MYHOST][$var_name])) {
+                    $return_var = $_SESSION[MYHOST][$var_name];
+                    break;
+                } else {
+                    if (strlen(trim(strval($_SESSION[MYHOST][$var_name]))) > 0) {
+                        $return_var = $_SESSION[MYHOST][$var_name];
+                        break;
+                    }
+                }
+            }
+        } else if ($scope[$i] == 'G') {
+            if (isset($_GET[$var_name])) {
+                if (is_bool($_GET[$var_name])) {
+                    $return_var = $_GET[$var_name];
+                    break;
+                } else {
+                    if (strlen(trim(strval($_GET[$var_name]))) > 0) {
+                        $return_var = $_GET[$var_name];
+                        break;
+                    }
+                }
+            }
+        } else if ($scope[$i] == 'P') {
+            if (isset($_POST[$var_name])) {
+                if (is_bool($_POST[$var_name])) {
+                    $return_var = $_POST[$var_name];
+                    break;
+                } else {
+                    if (strlen(trim(strval($_POST[$var_name]))) > 0) {
+                        $return_var = $_POST[$var_name];
+                        break;
+                    }
+                }
+            }
+        } else if ($scope[$i] == 'C') {
+            if (isset($_COOKIE[$var_name])) {
+                if (is_bool($_COOKIE[$var_name])) {
+                    $return_var = $_COOKIE[$var_name];
+                    break;
+                } else {
+                    if (strlen(trim(strval($_COOKIE[$var_name]))) > 0) {
+                        $return_var = $_COOKIE[$var_name];
+                        break;
+                    }
+                }
+            }
+        } else if ($scope[$i] == 'F') {
+            if (isset($_FILE[$var_name])) {
+                if (is_bool($_FILE[$var_name])) {
+                    $return_var = $_FILE[$var_name];
+                    break;
+                } else {
+                    if (strlen(trim(strval($_FILE[$var_name]))) > 0) {
+                        $return_var = $_FILE[$var_name];
+                        break;
+                    }
+                }
+            }
+        } else if ($scope[$i] == 'M') {
+            if (isset($_SESSION[MYHOST]['_$M'][$var_name])) {
+                if (is_bool($_SESSION[MYHOST]['_$M'][$var_name])) {
+                    $return_var = $_SESSION[MYHOST]['_$M'][$var_name];
+                    break;
+                } else {
+                    if (strlen(trim(strval($_SESSION[MYHOST]['_$M'][$var_name]))) > 0) {
+                        $return_var = $_SESSION[MYHOST]['_$M'][$var_name];
+                        break;
+                    }
+                }
+            }
         }
     }
 
