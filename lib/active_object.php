@@ -691,7 +691,9 @@ class ActiveObject {
         $rs->free();
         return $row[0];
     } // ActiveObject::count($class_name, $where = false, $params = array())
+    // Static data accessor
 
+    /* Pagination */
     final public static function paginate($class_name, $where = false,
         $params = array(), $more_sql = false, $page_param = 'p') {
         $result = array();
@@ -715,5 +717,5 @@ class ActiveObject {
             return false;
         }
     }
-    // Static data accessor
+    // Pagination
 }
