@@ -57,19 +57,6 @@ function __autoload($class_name) {
 // Class autoloader
 
 /**
- * Load database parameters
- */
-$parameters = ActiveObject::find_all('Parameter');
-if ($parameters && sizeof($parameters) > 0) {
-	foreach ($parameters as $parameter) {
-		$param_val = $parameter->param_val;
-		settype($param_val, $parameter->param_type);
-		$sys_configs[$parameter->param_key] = $param_val;
-	}
-}
-// Load database parameters
-
-/**
  * We do not need magic quotes.
  * If it's turned on, then strip these slashes.
  */

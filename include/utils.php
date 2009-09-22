@@ -13,236 +13,31 @@ function no_cache() {
 } // no_cache()
 
 /**
- * Make plural word
+ * Set system global configuration parameters
  *
- * @param string $noun The word to be processed
- * @return string
+ * @param string $key The parameter name
+ * @param mixed $val The parameter value
  */
-function pluralize($noun) {
-    if (preg_match('/(s|sh|ch|x)$/i', $noun)) {
-        $pl_noun = $noun.'es';
-    } else if (preg_match('/y$/i', $noun)) {
-        if (preg_match('/([aeiou]y)$/i', $noun)) {
-            $pl_noun = $noun.'s';
-        } else {
-            $pl_noun = substr($noun, 0, strlen($noun) - 1).'ies';
-        }
-    } else {
-        $pl_noun = $noun.'s';
-    }
-
-    return $pl_noun;
-} // pluralize($noun)
+function set_sys_param($key, $val) {
+    $global_sys_configs =& $GLOBALS['sys_configs'];
+    $global_sys_configs[$key] = $val;
+} // set_sys_param($key, $val)
 
 /**
- * Generate table name according to object name
+ * Singal event holder
+ */
+$_signals = array(
+    'onInitialize' => array(),
+    'beforeControllerLoad' => array(),
+    'beforeActionExec' => array(),
+    'beforeTplLoad' => array(),
+    'onTplRender' => array(),
+    'onFinalize' => array()
+);
+
+/**
  *
- * @param string $class_name The class name to be processed
- * @return string
  */
-function transform_class_name($class_name) {
-    $t_class_name = '';
-
-    // Get upcase letter index
-    $up_case_idx = array();
-
-    for ($i = 1; $i < strlen($class_name); $i++) {
-        if (ord($class_name[$i]) >= 65 &&
-            ord($class_name[$i]) <= 90) {
-            $up_case_idx[] = $i;
-        }
-    }
-    //
-
-    if (sizeof($up_case_idx) == 0) {
-        $t_class_name = $class_name;
-    } else {
-        $start_idx = 0;
-        for($i = 0; $i < sizeof($up_case_idx); $i++) {
-            $t_class_name .= '_'.substr($class_name,
-                $start_idx, $up_case_idx[$i] - $start_idx);
-            $start_idx = $up_case_idx[$i];
-        }
-        $t_class_name .= '_'.substr($class_name,
-                $start_idx);
-
-        $t_class_name = substr($t_class_name, 1);
-    }
-
-    return strtolower($t_class_name);
-} // transform_class_name($class_name)
-
-/**
- * Check the value whether it's in a valid number format
- *
- * @param string $var The value to be checked
- * @return bool
- */
-function v_is_numeric($var) {
-    return is_numeric($var);
-} // v_is_numeric($var)
-
-/**
- * Check the string whether it's empty
- * It will strip HTML tags and entities automatically
- *
- * @param string $var The string to be checked
- * @return bool
- */
-function v_is_empty($var) {
-    $var = strip_tags($var);
-    $var = str_replace('&nbsp;', '', $var);
-    return v_custom_match('/^\s*$/', $var);
-} // v_is_empty($var)
-
-/**
- * Check the value whether it's in a valid email format
- *
- * @param string $var The value to be checked
- * @return bool
- */
-function v_is_email($var) {
-    $email_parts = explode('@', $var);
-    if (sizeof($email_parts) != 2) {
-        return false;
-    }
-
-    /* check the name part */
-    if (preg_match('/^\..*$/', trim($email_parts[0])) ||
-        preg_match('/^.*\.$/', trim($email_parts[0])) ||
-        preg_match('/^\..*\.$/', trim($email_parts[0]))) {
-        return false;
-    }
-    if (!preg_match('/^[0-9a-zA-Z\!#\$%\*\/\?\|\^\{\}`~&\'\+\-=_\.]+$/', trim($email_parts[0]))) {
-        return false;
-    }
-
-    /* check the domain part */
-    if (preg_match('/\.\./', trim($email_parts[1]))) {
-        return false;
-    }
-    $domain_parts = explode('.', $email_parts[1]);
-    if (sizeof($domain_parts) < 2) {
-        return false;
-    }
-    foreach ($domain_parts as $s) {
-        $s = trim($s);
-        if (preg_match('/^\-.*$/', $s) ||
-            preg_match('/^.*\-$/', $s) ||
-            preg_match('/^\-.*\-$/', $s)) {
-            return false;
-        }
-        if (!preg_match('/^[0-9a-zA-Z\-]+$/', $s)) {
-            return false;
-        }
-    }
-
-    return true;
-} // v_is_email($var)
-
-/**
- * Check the string according to the given pattern
- *
- * @param string $regexp The pattern you want to test on the input string
- * @param string $var The input string
- * @return bool
- */
-function v_custom_match($regexp, $var) {
-    return preg_match($regexp, $var);
-} // v_custom_match($regexp, $var)
-
-/**
- * Variable holder functions
- */
-if (!isset($_SESSION[MYHOST]) || !is_array($_SESSION[MYHOST])) {
-    $_SESSION[MYHOST] = array();
-}
-if (!isset($_SESSION[MYHOST]['_$M']) || !is_array($_SESSION[MYHOST]['_$M'])) {
-    $_SESSION[MYHOST]['_$M'] = array();
-}
-
-/**
- * Get HTTP or manually set variables
- *
- * @param string $var_name The name of the requesting variable
- * @param string $scope The context of the requesting variable. One of following characters or combine of them.
- *          'A': All context
- *          'G': $_GET
- *          'P': $_POST
- *          'C': $_COOKIE
- *          'F': $_FILE
- *          'S': $_SESSION
- *          'M': Manuals
- * @param mixed $default If the requesting variable is not set or empty, this value is returned
- * @return mixed
- */
-function get_var($var_name, $scope = 'A', $default = false) {
-    if (!$scope) $scope = 'A';
-    if ($scope == 'A') $scope = 'SGPCFM';
-
-    $return_var = $default;
-    $raw_var = '';
-
-    for ($i = 0; $i < strlen($scope); $i++) {
-        if ($scope[$i] == 'S') {
-            $raw_var = _get_var($_SESSION[MYHOST], $var_name);
-        } else if ($scope[$i] == 'G') {
-            $raw_var = _get_var($_GET, $var_name);
-        } else if ($scope[$i] == 'P') {
-            $raw_var = _get_var($_POST, $var_name);
-        } else if ($scope[$i] == 'C') {
-            $raw_var = _get_var($_COOKIE, $var_name);
-        } else if ($scope[$i] == 'F') {
-            $raw_var = _get_var($_FILE, $var_name);
-        } else if ($scope[$i] == 'M') {
-            $raw_var = _get_var($_SESSION[MYHOST]['_$M'], $var_name);
-        }
-        if (is_string($raw_var) && strlen(trim($raw_var)) == 0) {
-            // Just for simplify the logic
-        } else {
-            $return_var = $raw_var;
-            break;
-        }
-    }
-
-    return $return_var;
-} // get_var($var_name, $scope = 'A', $default = false)
-
-/**
- * This function should never be called directly
- */
-function _get_var(&$container, $var_name) {
-    $return_var = '';
-    if (isset($container[$var_name])) {
-        if (is_bool($container[$var_name])) {
-            $return_var = $container[$var_name];
-        } else {
-            if (strlen(trim(strval($container[$var_name]))) > 0) {
-                $return_var = $container[$var_name];
-            }
-        }
-    }
-    return $return_var;
-} // _get_var(&$container, $var_name)
-
-/**
- * Set manual variables
- *
- * @param string $var_name The name of the new variable
- * @param string $val_val The name of the new variable
- */
-function set_var($var_name, $var_val) {
-    $_SESSION[MYHOST]['_$M'][$var_name] = $var_val;
-} // set_var($var_name, $var_val)
-
-/**
- * Set session variables
- *
- * @param string $var_name The name of the new variable
- * @param string $val_val The name of the new variable
- */
-function set_session($var_name, $var_val) {
-    $_SESSION[MYHOST][$var_name] = $var_val;
-} // set_session($var_name, $var_val)
-
-// Variable holder functions
+function attach_plugin($event, $name, $entry_func, $priority) {
+    $global__signals =& $GLOBALS['_signals'];
+} // attach_plugin($event, $name, $entry_func, $priority)
