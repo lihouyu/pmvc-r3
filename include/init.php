@@ -2,22 +2,13 @@
 if (!defined('PMVCR3')) die('Access violation error!');
 
 $sys_paths = array(
+	'ext' => ROOT.DS.'ext',
     'inc' => ROOT.DS.'include',
-    'lib' => ROOT.DS.'lib',
     'mdl' => ROOT.DS.'models',
     'ctl' => ROOT.DS.'controllers',
-    'plg' => ROOT.DS.'plugins',
+    'plg' => ROOT.DS.'plugin',
     'tpl' => ROOT.DS.'templates'
 );
-
-/**
- * Initialize session
- */
-if (intval(ini_get('session.auto_start')) == 0) {
-	session_start();
-}
-define('MYHOST', $_SERVER['SERVER_NAME']);
-// Initialize session
 
 include_once($sys_paths['inc'].DS.'utils.php');
 
@@ -79,3 +70,16 @@ if (get_magic_quotes_gpc()) {
     }
 }
 // Strip slashes
+
+/**
+ * Prepare all plugins
+ */
+$plugins = scandir($sys_paths['plg']);
+if (sizeof($plugins) > 0) {
+	foreach ($plugins as $plugin) {
+		if ($plugin == '.' || $plugin == '..' ||
+			!is_dir($sys_paths['plg'].DS.$plugin)) continue;
+		include_once($sys_paths['plg'].DS.$plugin.DS.'bootstrap.php');
+	}
+}
+// Prepare all plugins

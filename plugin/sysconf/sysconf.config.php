@@ -8,4 +8,4 @@ if (!defined('PMVCR3')) die('Access violation error!');
 $GLOBALS['sys_configs'] = array(
     'enable_table_cache'    => false,
     'table_cache_dir'       => ROOT.DS.'var'.DS.'table_cache'
-); // $sys_configs
+); // $GLOBALS['sys_configs']

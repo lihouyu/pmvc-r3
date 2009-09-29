@@ -4,12 +4,12 @@ if (!defined('PMVCR3')) die('Access violation error!');
 /**
  * Database configurations
  */
-$db_configs = array(
+$GLOBALS['db_configs'] = array(
     'conn1' => array(
         'host'      => 'localhost',     // MySQL server hostname
         'user'      => 'root',          // User for connecting MySQL server
-        'passwd'    => '',              // User password
-        'database'  => 'test',          // The database to be used
+        'passwd'    => 'L@74123',              // User password
+        'database'  => 'pmvc_r3_test',          // The database to be used
         'charset'   => 'utf8',          // The connection charset
         'prefix'    => 'pr3_',          // The prefix of tables in the database
         'default'   => true             // Use as default connection
@@ -26,4 +26,4 @@ $db_configs = array(
         'default'   => false
     )
  */
-); // $db_configs
+); // $GLOBALS['db_configs']

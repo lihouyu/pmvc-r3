@@ -3,7 +3,7 @@ if (!defined('PMVCR3')) die('Access violation error!');
 
 function load_plugin_dbparam() {
     $my_dir = dirname(__FILE__);
-    include_once($my_dir.'DS'.'models'.DS.'parameter.php');
+    include_once($my_dir.DS.'models'.DS.'parameter.php');
 
     /**
      * Load database parameters

@@ -1,20 +1,21 @@
 <?php
 if (!defined('PMVCR3')) die('Access violation error!');
 
-/**
- * Set system global configuration parameters
- *
- * @param string $key The parameter name
- * @param mixed $val The parameter value
- */
-function set_sys_param($key, $val) {
-    $global_sys_configs =& $GLOBALS['sys_configs'];
-    $global_sys_configs[$key] = $val;
-} // set_sys_param($key, $val)
-
 function load_plugin_sysconf() {
+    /**
+     * Initialize session
+     */
+    if (intval(ini_get('session.auto_start')) == 0) {
+        session_start();
+    }
+
+    if (!defined('MYHOST')) {
+        define('MYHOST', $_SERVER['SERVER_NAME']);
+    }
+    // Initialize session
+    
     $my_dir = dirname(__FILE__);
-    include_once($my_dir.DS.'config.php');
+    include_once($my_dir.DS.'sysconf.php');
 }
 
 attach_plugin('onInitialize', 'sysconf', 'load_plugin_sysconf', 3);

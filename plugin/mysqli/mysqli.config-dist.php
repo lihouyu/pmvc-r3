@@ -4,7 +4,7 @@ if (!defined('PMVCR3')) die('Access violation error!');
 /**
  * Database configurations
  */
-$db_configs = array(
+$GLOBALS['db_configs'] = array(
     'conn1' => array(
         'host'      => 'localhost',     // MySQL server hostname
         'user'      => 'root',          // User for connecting MySQL server
@@ -26,4 +26,4 @@ $db_configs = array(
         'default'   => false
     )
  */
-); // $db_configs
+); // $GLOBALS['db_configs']
